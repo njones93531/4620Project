@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -14,7 +15,14 @@ int main(){
 	cout << "Usage: ./a.out < passwords.txt <optional: password>" << endl;
 
 	//Figure out how many threads we can have at once
-
+	//this gets the total number of processes we can have as the user
+		//do we care about the total number of processes or threads?
+	int max_proc;//will hold the number of processes we can have at once
+	system("nproc >> process.txt");
+	ifstream process_file;
+	process_file.open("process.txt");
+	process_file >> max_proc;
+	printf("%d is the max proc\n", max_proc);
 	//PASSWORD ANALYSIS MODE:
 	//Store each password as a hash in order to give user password feedback (if contained)
 	//If password is in dictionary, do math to tell user how long it would take 
