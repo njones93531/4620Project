@@ -13,19 +13,20 @@ unordered_map <string, int> HT;
 vector <string> pwds;
 
 int main(){
-	pwds.push_back("1234");
+    pwds.push_back("1234");
 
-	//Ideally, print an error message if user fails to run program correctly 
-	cout << "Usage: ./a.out < passwords.txt <optional: password>" << endl;
+    //Ideally, print an error message if user fails to run program correctly 
+    cout << "Usage: ./a.out < passwords.txt <optional: password>" << endl;
 
-	//Figure out how many procs we can have at once
-	//this gets the total number of processes we can have as the user
-	//do we care about the total number of processes or procs?
-	system("nproc >> process.txt");
-	ifstream process_file;
-	process_file.open("process.txt");
-	process_file >> MAX_PROC;
-	printf("%d is the max proc\n", MAX_PROC);
+    //Figure out how many procs we can have at once
+    //this gets the total number of processes we can have as the user
+    //do we care about the total number of processes or procs?
+    system("nproc >> process.txt");
+    ifstream process_file;
+    process_file.open("process.txt");
+    process_file >> MAX_PROC;
+    printf("%d is the max proc\n", MAX_PROC);
+
 
 
 	//PASSWORD ANALYSIS MODE:
@@ -54,35 +55,37 @@ int main(){
 		cout << "Not Empty!" << endl;
 	}
 	string pwd;
-	int num = 1;
-	while (cin >> pwd) {
-		HT[pwd] = num;        //use HT[pwd] to get index
-		pwds.push_back(pwd);  //use pwds[index] to get pwd
-		num++;
+    int num = 1;
+    while (cin >> pwd) {
+            HT[pwd] = num;        //use HT[pwd] to get index
+            pwds.push_back(pwd);  //use pwds[index] to get pwd
+            num++;
     }
-	// Print Entire Dictionary
-	// HT.printTable();
+    int DICT_SIZE = num;
+    // Print Entire Dictionary
+    // HT.printTable();
 
-	system("install -m 666 /dev/null su.txt"); //writeable file
+    system("install -m 666 /dev/null su.txt"); //writeable file
 
-	// PROC_ID; //Starts at 0
-	// NUM_PROCS; 
-	for(int i = PROC_ID; i < DICT_SIZE; i+=NUM_PROCS){ //Keeps procs from trying the same words
-		const string cmd = "bash suprobe.sh " + pwds[0] + USERNAME + '&';
-		system(cmd.c_str());
-	 	//if(cracked) stop;
-	}
-	//regather all procs probably, just in case one of them succeeded 
-	//If we make it this far, password was not in dict; respawn procs
-	// string password = increment_password("", PROC_ID); //Don't let procs try the same words
-	// while(!cracked){
-	// 	//if password not in dict, try password
-	// 	increment_password(password, NUM_PROCS);
-	// }
+    // PROC_ID; //Starts at 0
+    int NUM_PROCS = 1;
+    for(int i = 1; i <= DICT_SIZE; i+=NUM_PROCS){ //Keeps procs from trying the same words
+        const string cmd = "bash suprobe.sh " + pwds[i] +' '+ USERNAME + ">/dev/null 2>/dev/null &";
+        system(cmd.c_str());
+        //cout << cmd << endl;
+        //if(cracked) stop;
+    }
+    //regather all procs probably, just in case one of them succeeded 
+    //If we make it this far, password was not in dict; respawn procs
+    // string password = increment_password("", PROC_ID); //Don't let procs try the same words
+    // while(!cracked){
+    //      //if password not in dict, try password
+    //      increment_password(password, NUM_PROCS);
+    // }
 
-	//When a proc is successful, it will print the correct password into passwords.txt
+    //When a proc is successful, it will print the correct password into passwords.txt
 
 
 
-	return 0;
+    return 0;
 }
