@@ -2,16 +2,18 @@
 #include <fstream>
 #include <string>
 #include <unordered_map>
-#include "hash_table.cpp"
+#include <vector>
 
 using namespace std;
 
 int MAX_PROC = 0; //will hold the number of processes we can have at once
 string USERNAME = ""; //"" for root
 
-unordered_map <string, int> dict;
+unordered_map <string, int> HT;
+vector <string> pwds;
 
 int main(){
+	pwds.push_back("1234");
 
 	//Ideally, print an error message if user fails to run program correctly 
 	cout << "Usage: ./a.out < passwords.txt <optional: password>" << endl;
@@ -34,16 +36,28 @@ int main(){
 	//PASSWORD CRACKING MODE:
 	//Spawn procs 
 	//load entire dictionary in an array and seperately in a hash table
-	HashTable HT;
-	if (HT.isEmpty()) {
+		// HashTable HT;
+		// if (HT.isEmpty()) {
+		// 	cout << "Empty Hash!" << endl;
+		// } else {
+		// 	cout << "Not Empty!" << endl;
+		// }
+		// string pwd;
+		// int num = 0;
+		// while (cin >> pwd) {
+		// 	HT.insertItem(num, pwd);
+		// 	num++;
+	    // }
+	if (HT.empty()) {
 		cout << "Empty Hash!" << endl;
 	} else {
 		cout << "Not Empty!" << endl;
 	}
 	string pwd;
-	int num = 0;
+	int num = 1;
 	while (cin >> pwd) {
-		HT.insertItem(num, pwd);
+		HT[pwd] = num;        //use HT[pwd] to get index
+		pwds.push_back(pwd);  //use pwds[index] to get pwd
 		num++;
     }
 	// Print Entire Dictionary
@@ -52,7 +66,8 @@ int main(){
 	// PROC_ID; //Starts at 0
 	// NUM_PROCS; 
 	// for(int i = PROC_ID; i < DICT_SIZE; i+=NUM_PROCS){ //Keeps procs from trying the same words
-		system("./suprobe.sh " + HT[0] + USERNAME);
+		const string cmd = "./suprobe.sh " + pwds[0] + USERNAME;
+		system(cmd.c_str());
 	// 	//if(cracked) stop;
 	// }
 	//regather all procs probably, just in case one of them succeeded 
