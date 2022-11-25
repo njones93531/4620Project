@@ -63,13 +63,15 @@ int main(){
 	// Print Entire Dictionary
 	// HT.printTable();
 
+	system("install -m 666 /dev/null su.txt"); //writeable file
+
 	// PROC_ID; //Starts at 0
 	// NUM_PROCS; 
-	// for(int i = PROC_ID; i < DICT_SIZE; i+=NUM_PROCS){ //Keeps procs from trying the same words
-		const string cmd = "./suprobe.sh " + pwds[0] + USERNAME;
+	for(int i = PROC_ID; i < DICT_SIZE; i+=NUM_PROCS){ //Keeps procs from trying the same words
+		const string cmd = "bash suprobe.sh " + pwds[0] + USERNAME + '&';
 		system(cmd.c_str());
-	// 	//if(cracked) stop;
-	// }
+	 	//if(cracked) stop;
+	}
 	//regather all procs probably, just in case one of them succeeded 
 	//If we make it this far, password was not in dict; respawn procs
 	// string password = increment_password("", PROC_ID); //Don't let procs try the same words
