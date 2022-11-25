@@ -2,5 +2,5 @@
   
 su $2 -c bash << EOF
 $1
-echo "Password is $1" > password.txt
+echo "Password is $1" > su.txt
 EOF

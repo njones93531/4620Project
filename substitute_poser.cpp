@@ -7,7 +7,7 @@
 using namespace std;
 
 int MAX_PROC = 0; //will hold the number of processes we can have at once
-string USERNAME = ""; //"" for root
+string USERNAME = "Bob"; //"" for root
 
 unordered_map <string, int> HT;
 vector <string> pwds;
