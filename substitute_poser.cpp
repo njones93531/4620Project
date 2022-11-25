@@ -7,7 +7,7 @@
 using namespace std;
 
 int MAX_PROC = 0; //will hold the number of processes we can have at once
-string USERNAME = "" //"" for root
+string USERNAME = ""; //"" for root
 
 unordered_map <string, int> dict;
 
@@ -22,8 +22,8 @@ int main(){
 	system("nproc >> process.txt");
 	ifstream process_file;
 	process_file.open("process.txt");
-	process_file >> max_proc;
-	printf("%d is the max proc\n", max_proc);
+	process_file >> MAX_PROC;
+	printf("%d is the max proc\n", MAX_PROC);
 
 
 	//PASSWORD ANALYSIS MODE:
@@ -52,7 +52,7 @@ int main(){
 	// PROC_ID; //Starts at 0
 	// NUM_PROCS; 
 	// for(int i = PROC_ID; i < DICT_SIZE; i+=NUM_PROCS){ //Keeps procs from trying the same words
-		system("./suprobe.sh " + HT[i] + USERNAME) 
+		system("./suprobe.sh " + HT[0] + USERNAME);
 	// 	//if(cracked) stop;
 	// }
 	//regather all procs probably, just in case one of them succeeded 
