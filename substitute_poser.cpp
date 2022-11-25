@@ -5,6 +5,8 @@
 #include <vector>
 #include <cmath>
 #include <unistd.h>
+#include <sys/sysinfo.h>
+#include <algorithm>
 
 using namespace std;
 
