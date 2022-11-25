@@ -1,11 +1,13 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <thread>
 #include <unordered_map>
 #include "hash_table.cpp"
 
 using namespace std;
+
+int MAX_PROC = 0; //will hold the number of processes we can have at once
+string USERNAME = "" //"" for root
 
 unordered_map <string, int> dict;
 
@@ -14,22 +16,23 @@ int main(){
 	//Ideally, print an error message if user fails to run program correctly 
 	cout << "Usage: ./a.out < passwords.txt <optional: password>" << endl;
 
-	//Figure out how many threads we can have at once
+	//Figure out how many procs we can have at once
 	//this gets the total number of processes we can have as the user
-		//do we care about the total number of processes or threads?
-	int max_proc;//will hold the number of processes we can have at once
+	//do we care about the total number of processes or procs?
 	system("nproc >> process.txt");
 	ifstream process_file;
 	process_file.open("process.txt");
 	process_file >> max_proc;
 	printf("%d is the max proc\n", max_proc);
+
+
 	//PASSWORD ANALYSIS MODE:
 	//Store each password as a hash in order to give user password feedback (if contained)
 	//If password is in dictionary, do math to tell user how long it would take 
 	//If not, do math to tell user how long it would take to dial up to their password
 
 	//PASSWORD CRACKING MODE:
-	//Spawn threads 
+	//Spawn procs 
 	//load entire dictionary in an array and seperately in a hash table
 	HashTable HT;
 	if (HT.isEmpty()) {
@@ -46,21 +49,21 @@ int main(){
 	// Print Entire Dictionary
 	// HT.printTable();
 
-	// THREAD_ID; //Starts at 0
-	// NUM_THREADS; 
-	// for(int i = THREAD_ID; i < DICT_SIZE; i+=NUM_THREADS){ //Keeps threads from trying the same words
-	// 	//Try password i 
+	// PROC_ID; //Starts at 0
+	// NUM_PROCS; 
+	// for(int i = PROC_ID; i < DICT_SIZE; i+=NUM_PROCS){ //Keeps procs from trying the same words
+		system("./suprobe.sh " + HT[i] + USERNAME) 
 	// 	//if(cracked) stop;
 	// }
-	//regather all threads probably, just in case one of them succeeded 
-	//If we make it this far, password was not in dict; respawn threads
-	// string password = increment_password("", THREAD_ID); //Don't let threads try the same words
+	//regather all procs probably, just in case one of them succeeded 
+	//If we make it this far, password was not in dict; respawn procs
+	// string password = increment_password("", PROC_ID); //Don't let procs try the same words
 	// while(!cracked){
 	// 	//if password not in dict, try password
-	// 	increment_password(password, NUM_THREADS);
+	// 	increment_password(password, NUM_PROCS);
 	// }
 
-	//Hopefully when a thread is successful, we can get it to spawn a root shell or something
+	//When a proc is successful, it will print the correct password into passwords.txt
 
 
 
