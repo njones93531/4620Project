@@ -1,11 +1,12 @@
 #include <iostream>
 #include <list>
 #include <cstring>
+#include <fstream>
 using namespace std;
 
 class HashTable {
     private:
-        static const int hashGroups = 10;
+        static const int hashGroups = 100;
         // List 1, index 0, list 2, index 1, ...
         list<pair<int, string> > table[hashGroups];
 
@@ -78,13 +79,19 @@ void HashTable::removeItem(int key) {
 
 // printing hash table
 void HashTable::printTable() {
+    ofstream myfile ("Tried_Passwords.txt");
     for (int i{}; i < hashGroups; i++) {
         if (table[i].size() == 0) continue;
 
         auto bItr = table[i].begin();
         for(; bItr != table[i].end(); bItr++) {
-            cout << "Key: " << bItr->first << " Value: " << bItr->second << endl;
+            // cout << "Key: " << bItr->first << " Value: " << bItr->second << endl;
+             if (myfile.is_open()) {
+                // myfile << bItr->first << ": " << bItr->second << "\n";
+                myfile << bItr->second << "\n";
+            }
         }
     }
+    myfile.close();
     return;
 }

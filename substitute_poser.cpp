@@ -17,7 +17,7 @@
 
 using namespace std;
 
-string USERNAME = "Bob";
+string USERNAME = "test";
 int PROC_CAP = 500; //How many processes do we think it can handle at once?
 unordered_map <string, int> HT;
 vector <string> pwds;
@@ -58,8 +58,9 @@ bool found(){
 	return (stoi(exec("cat su.txt | wc -l")) > 0);
 }
 
-void passwordFound(int sig){
+void passwordFound(int sig, HashTable hash){
 	cout << "Password found. Aborting search" << endl;
+    hash.printTable();
 	exit(sig);
 }
 
@@ -81,7 +82,6 @@ void buildVCTOI(){
 int main(int argc, char **argv){
     pwds.push_back(""); //Just in case user has no password
     buildVCTOI(); 
-    cout << getpid() << endl;
 
     //Print an error message if user fails to run program correctly 
     if(argc < 2){
@@ -97,9 +97,9 @@ int main(int argc, char **argv){
         return(1);
     }
     string pwd;
-    int num = 1;
+    int num = 0;
     while (pwd_file >> pwd) {
-	HT[pwd] = num;        //use HT[pwd] to get index
+	    HT[pwd] = num;        //use HT[pwd] to get index
         pwds.push_back(pwd);  //use pwds[index] to get pwd
         num++;
     }
@@ -125,29 +125,23 @@ int main(int argc, char **argv){
 	//Mayank's Graduate Functionality:
 	HashTable hash;
 	if (hash.isEmpty()) {
-		cout << "Start: Empty Hash!" << endl;
+		//cout << "Start: Empty Hash!" << endl;
 	} else {
-		cout << "Not Empty!" << endl;
+		//cout << "Not Empty!" << endl;
 	}
     int numOfPasswords = 0;
-    ofstream myfile ("Tried_Passwords.txt");
 
     //PASSWORD CRACKING MODE:
     system("rm su.txt; install -m 666 /dev/null su.txt"); //writeable file for storing password
     for(int i = 0; i <= DICT_SIZE; i++){ //Keeps procs from trying the same words
-        if(i%100==0 && found()) passwordFound(0); //If found, abort
+        hash.insertItem(numOfPasswords, pwds[i]);
+
+        if(i%100==0 && found()) passwordFound(0, hash); //If found, abort
 	    while(i%3==0 && stoi(exec("ps -e | wc -l")) > PROC_CAP){
-            //cout << mem_left() << endl;
             usleep (1000000); //Avoid fork bombing yourself
         }
 
-        // Storing each password tried in hash table and printing it to Tried_Passwords.txt
-        hash.insertItem(numOfPasswords, pwds[i]);
-        if (myfile.is_open()) {
-            myfile << numOfPasswords << ": " << pwds[i] << "\n";
-        }
-
-        const string cmd = "bash suprobe.sh " + pwds[i] + ' ' + USERNAME + ' ' + to_string(getpid()) + ' ' + to_string(numOfPasswords) +' ' + ">/dev/null 2>/dev/null &";
+        const string cmd = "bash suprobe.sh " + pwds[i] + ' ' + USERNAME + ' ' + to_string(getpid()) + ' ' + to_string(numOfPasswords) + ' ' + ">/dev/null 2>/dev/null &";
         system(cmd.c_str());
         numOfPasswords++;
     }
@@ -156,23 +150,17 @@ int main(int argc, char **argv){
         //Test Password
         pwd=int_to_string("", i);
 
-        // Storing each password tried in hash table and printing it to Tried_Passwords.txt
-        // Here it will add after the passwords from passwords.txt executed
+        // Storing each password tried in hash table
         hash.insertItem(numOfPasswords, pwd);
-        if (myfile.is_open()) {
-            myfile << numOfPasswords << ": " << pwd << "\n";
-        }
 
         const string cmd = "bash suprobe.sh " + pwd + ' ' + USERNAME + ' ' + to_string(getpid()) + ' ' + to_string(numOfPasswords) + ' ' + ">/dev/null 2>/dev/null &";
         system(cmd.c_str());
         numOfPasswords++;
-        if(i%100==0 && found()) passwordFound(0); //If found, abort
+        if(i%100==0 && found()) passwordFound(0, hash); //If found, abort
         //Attempt to keep procs under PROC_CAP
         while(i%3==0 && stoi(exec("ps -e | wc -l")) > PROC_CAP){
-            //cout << mem_left() << endl;
             usleep (1000000); //Avoid fork bombing yourself
         }
     }
-    myfile.close();
     return 0;
 }
