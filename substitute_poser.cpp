@@ -83,7 +83,7 @@ int main(int argc, char **argv){
 
     //Print an error message if user fails to run program correctly 
     if(argc < 2){
-	    cout << "Usage: ./a.out passwords.txt <optional: password>" << endl;
+	    cout << "Usage: ./a.out passwords.txt <optional: password1> <opt: passwd2> ..." << endl;
 	    exit(0);
     }
 
@@ -106,15 +106,18 @@ int main(int argc, char **argv){
     //PASSWORD ANALYSIS MODE:
         //If password is in dictionary, do math to tell user how long it would take 
         //If not, do math to tell user how long it would take to dial up to their password
-    if(argc==3){
+    if(argc>2){
         cout << "Analysis Mode: \n";
-        long long time = 0;
-        if(HT[argv[2]] != 0){
-            time = (HT[argv[2]] * 3) / PROC_CAP;
-        } else time = ((string_to_int(argv[2]) + DICT_SIZE) * 3) / PROC_CAP;
-        
-        cout << "It would take " << time << " seconds to crack your password.\n";
-        return(0);
+
+	//Nathan's Graduate Functionality Extension:
+	for(int i = 0; i < argc-2; i++){
+          long long time = 0;
+          if(HT[argv[i+2]] != 0){
+              time = (HT[argv[i+2]] * 3) / PROC_CAP;
+          } else time = ((string_to_int(argv[i+2]) + DICT_SIZE) * 3) / PROC_CAP;
+          cout << "It would take " << time << " seconds to crack the password: "<< argv[i+2] <<".\n";
+	}
+	return(0);
     }
 
     //PASSWORD CRACKING MODE:
