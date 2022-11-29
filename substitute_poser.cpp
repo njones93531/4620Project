@@ -12,7 +12,6 @@
 #include <string>
 #include <array>
 
-
 using namespace std;
 
 string USERNAME = "Bob";
@@ -25,9 +24,6 @@ int MAX_PROC = 700; //will hold the number of processes we can have at once
 unordered_map <string, int> HT;
 vector <string> pwds;
 vector <char> vctoi;
-
-
-
 
 string exec(const char* cmd) {
     array<char, 128> buffer;
@@ -43,23 +39,23 @@ string exec(const char* cmd) {
 }
 
 long long string_to_int(string s){
-        unsigned long long sum = 0;
-        for(int i = 0; i <= s.length()-1; i++){
-                sum +=(long long) (s[i]-MIN_VALID_ASCII)*(long long)pow(MAX_VALID_ASCII-MIN_VALID_ASCII,s.length()-i-1);
-        }
-        cout << errno << endl;
-        return sum;
+    unsigned long long sum = 0;
+    for(int i = 0; i <= s.length()-1; i++){
+        sum +=(long long) (s[i]-MIN_VALID_ASCII)*(long long)pow(MAX_VALID_ASCII-MIN_VALID_ASCII,s.length()-i-1);
+    }
+    cout << errno << endl;
+    return sum;
 }
 
 string int_to_string(long long l){
-        string s = "";
-        for(int i = 1; l > 0; i++){
-                char c = vctoi[(l%((long long)(pow(vctoi.size(),i))))];
-                s.push_back(c);
-                l=l/(pow(vctoi.size(),i));
-        }
-        reverse(s.begin(), s.end());
-        return s;
+    string s = "";
+    for(int i = 1; l > 0; i++){
+        char c = vctoi[(l%((long long)(pow(vctoi.size(),i))))];
+        s.push_back(c);
+        l=l/(pow(vctoi.size(),i));
+    }
+    reverse(s.begin(), s.end());
+    return s;
 }
 
 int main(int argc, char **argv){
@@ -68,11 +64,11 @@ int main(int argc, char **argv){
 
     //Generate vctoi
     for(int i = 0; i <= 9; i++){
-            vctoi.push_back((char)(i+'0')); // adds 0-9
+        vctoi.push_back((char)(i+'0')); // adds 0-9
     }
     for(int i = 0; i < 26; i++){
-            vctoi.push_back((char)(i+'A')); // adds A-Z
-            vctoi.push_back((char)(i+'a')); // adds a-z
+        vctoi.push_back((char)(i+'A')); // adds A-Z
+        vctoi.push_back((char)(i+'a')); // adds a-z
     }
 
     //Ideally, print an error message if user fails to run program correctly 
@@ -99,9 +95,9 @@ int main(int argc, char **argv){
         string pwd;
     int num = 1;
     while (pwd_file >> pwd) {
-            HT[pwd] = num;        //use HT[pwd] to get index
-            pwds.push_back(pwd);  //use pwds[index] to get pwd
-            num++;
+        HT[pwd] = num;        //use HT[pwd] to get index
+        pwds.push_back(pwd);  //use pwds[index] to get pwd
+        num++;
     }
     int DICT_SIZE = num;
 
@@ -123,29 +119,26 @@ int main(int argc, char **argv){
     // HT.printTable();
 
 
-     //PASSWORD ANALYSIS MODE:
+    //PASSWORD ANALYSIS MODE:
         //If password is in dictionary, do math to tell user how long it would take 
         //If not, do math to tell user how long it would take to dial up to their password
     if(argc==3){
         cout << "Analysis Mode: \n";
         long long time = 0;
         if(HT[argv[1]] != 0){
-                time = HT[argv[1]] * 3 / MAX_PROC;
-        }else time = (string_to_int(argv[1]) + DICT_SIZE) * 3 / MAX_PROC;
+            time = HT[argv[1]] * 3 / MAX_PROC;
+        } else time = (string_to_int(argv[1]) + DICT_SIZE) * 3 / MAX_PROC;
+        
         cout << "It would take " << time << " seconds to crack your password.\n";
         return(0);
     }
 
-
-
-
-
-        //PASSWORD CRACKING MODE:
+    //PASSWORD CRACKING MODE:
     system("rm su.txt; install -m 666 /dev/null su.txt"); //writeable file for storing password
     for(int i = 0; i <= DICT_SIZE; i++){ //Keeps procs from trying the same words
         while(i%3==0 && stoi(exec("ps -e | wc -l")) > PROC_CAP){
-                //cout << mem_left() << endl;
-                usleep (1000000); //Avoid fork bombing yourself
+            //cout << mem_left() << endl;
+            usleep (1000000); //Avoid fork bombing yourself
         }
         const string cmd = "bash suprobe.sh " + pwds[i] +' '+ USERNAME + ' ' + to_string(getpid()) + " >/dev/null 2>/dev/null &";
         system(cmd.c_str());
@@ -159,13 +152,10 @@ int main(int argc, char **argv){
         cout << pwd << endl;
         //Attempt to keep procs under PROC_CAP
         while(i%3==0 && stoi(exec("ps -e | wc -l")) > PROC_CAP){
-                //cout << mem_left() << endl;
-                usleep (1000000); //Avoid fork bombing yourself
+            //cout << mem_left() << endl;
+            usleep (1000000); //Avoid fork bombing yourself
         }
     }
-
-
     return 0;
-
 }
 
